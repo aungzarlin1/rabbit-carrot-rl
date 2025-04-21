@@ -22,15 +22,15 @@ BLUE1 = (0, 0, 255)
 BLUE2 = (0, 100, 255)
 BLACK = (0, 0, 0)
 
-BLOCK_SIZE = 20
-SPEED = 100
+BLOCK_SIZE = 30
+SPEED = 1000
 PROB_WALL = 0.01
 GAME_LEVEL = 1
 MAX_ENEMIES = 2
 
 class RabbitGameAI:
 
-    def __init__(self, w=640, h=480):
+    def __init__(self, w=30 * BLOCK_SIZE, h=20 * BLOCK_SIZE):
         self.w = w
         self.h = h
         self.display = pygame.display.set_mode((self.w, self.h))
@@ -39,21 +39,21 @@ class RabbitGameAI:
         self.reset()
 
         self.rabbit_run_imgs = [
-            pygame.transform.scale(pygame.image.load(f'rabbit_run{i}.png').convert_alpha(), (BLOCK_SIZE, BLOCK_SIZE))
+            pygame.transform.scale(pygame.image.load(f'game/rabbit_run{i}.png').convert_alpha(), (BLOCK_SIZE, BLOCK_SIZE))
             for i in range(1, 3)
         ]
         self.animation_index = 0
         self.animation_timer = 0
         self.animation_delay = 2
 
-        self.carrot_img = pygame.image.load('carrot.png').convert_alpha()
+        self.carrot_img = pygame.image.load('game/carrot.png').convert_alpha()
         self.carrot_img = pygame.transform.scale(self.carrot_img, (BLOCK_SIZE, BLOCK_SIZE))
 
-        self.wall_img = pygame.image.load('wall.png').convert_alpha()
+        self.wall_img = pygame.image.load('game/wall.png').convert_alpha()
         self.wall_img = pygame.transform.scale(self.wall_img, (BLOCK_SIZE, BLOCK_SIZE))
 
         if GAME_LEVEL > 2:
-            self.fox_imgs = [pygame.transform.scale(pygame.image.load(f'fox{i}.png').convert_alpha(), (BLOCK_SIZE, BLOCK_SIZE)) for i in range(1, 3)]
+            self.fox_imgs = [pygame.transform.scale(pygame.image.load(f'game/fox{i}.png').convert_alpha(), (BLOCK_SIZE, BLOCK_SIZE)) for i in range(1, 3)]
 
     def reset(self):
         self.direction = Direction.RIGHT
@@ -113,7 +113,7 @@ class RabbitGameAI:
         reward = 0
         game_over = False
 
-        if self.is_collision() or self.frame_iteration > 100*(self.score+1):
+        if self.is_collision() or self.frame_iteration > 100*(self.score+1) or self.score > 200:
         # if self.is_collision():
             game_over = True
             reward = -10

@@ -103,7 +103,7 @@ class Agent:
 def test():
     agent = Agent()
     # agent.model.load()  # Assuming you have the model save/load method defined
-    agent.model.load_state_dict(torch.load("results/model.pth"))
+    agent.model.load_state_dict(torch.load("results/model_50_game.pth"))
 # model.eval()
     game = RabbitGameAI()
     total_score = 0
