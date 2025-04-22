@@ -23,16 +23,18 @@ BLUE2 = (0, 100, 255)
 BLACK = (0, 0, 0)
 
 BLOCK_SIZE = 30
-SPEED = 1000
+# SPEED = 10
 PROB_WALL = 0.01
-GAME_LEVEL = 1
+# GAME_LEVEL = 1
 MAX_ENEMIES = 2
 
 class RabbitGameAI:
 
-    def __init__(self, w=30 * BLOCK_SIZE, h=20 * BLOCK_SIZE):
+    def __init__(self, w=30 * BLOCK_SIZE, h=20 * BLOCK_SIZE, game_speed = 1000, game_level = 1):
         self.w = w
         self.h = h
+        self.game_speed = game_speed
+        self.game_level = game_level
         self.display = pygame.display.set_mode((self.w, self.h))
         pygame.display.set_caption('Rabbit Game')
         self.clock = pygame.time.Clock()
@@ -52,7 +54,7 @@ class RabbitGameAI:
         self.wall_img = pygame.image.load('game/wall.png').convert_alpha()
         self.wall_img = pygame.transform.scale(self.wall_img, (BLOCK_SIZE, BLOCK_SIZE))
 
-        if GAME_LEVEL > 2:
+        if self.game_level > 2:
             self.fox_imgs = [pygame.transform.scale(pygame.image.load(f'game/fox{i}.png').convert_alpha(), (BLOCK_SIZE, BLOCK_SIZE)) for i in range(1, 3)]
 
     def reset(self):
@@ -65,7 +67,7 @@ class RabbitGameAI:
         self._place_carrot()
         self.frame_iteration = 0 
         self.enemies = []
-        if GAME_LEVEL > 2:
+        if self.game_level > 2:
             for _ in range(MAX_ENEMIES):
                 enemy = Point(random.randint(0, (self.w - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE,
                               random.randint(0, (self.h - BLOCK_SIZE) // BLOCK_SIZE) * BLOCK_SIZE)
@@ -82,7 +84,7 @@ class RabbitGameAI:
             maze[y][self.w // BLOCK_SIZE - 1] = 1
         for y in range(1, self.h // BLOCK_SIZE - 1):
             for x in range(1, self.w // BLOCK_SIZE - 1):
-                if random.random() < PROB_WALL and GAME_LEVEL > 1:
+                if random.random() < PROB_WALL and self.game_level > 1:
                     maze[y][x] = 1
         wall_points = [Point(x * BLOCK_SIZE, y * BLOCK_SIZE) for y in range(self.h // BLOCK_SIZE)
                        for x in range(self.w // BLOCK_SIZE) if maze[y][x] == 1]
@@ -97,14 +99,29 @@ class RabbitGameAI:
 
     def play_step(self, action):
         self.frame_iteration  += 1
-        #1. collect user input
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+        if action == None:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT and self.direction != Direction.RIGHT:
+                        self.direction = Direction.LEFT
+                    elif event.key == pygame.K_RIGHT and self.direction != Direction.LEFT:
+                        self.direction = Direction.RIGHT
+                    elif event.key == pygame.K_UP and self.direction != Direction.DOWN:
+                        self.direction = Direction.UP
+                    elif event.key == pygame.K_DOWN and self.direction != Direction.UP:
+                        self.direction = Direction.DOWN
+            self._move(self.direction, who='human')
 
-        # 2. move
-        self._move(action) # update the head
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+            self._move(action) # update the head
+
         self.rabbit.insert(0, self.head)
         self.rabbit.pop()
 
@@ -134,7 +151,7 @@ class RabbitGameAI:
             self._move_enemy(enemy)
 
         self._update_ui()
-        self.clock.tick(SPEED)
+        self.clock.tick(self.game_speed)
 
         return reward, game_over, self.score
 
@@ -191,18 +208,19 @@ class RabbitGameAI:
         self.display.blit(text, [10, 10])
         pygame.display.flip()
 
-    def _move(self, action):
-        clockwise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
-        idx = clockwise.index(self.direction)
+    def _move(self, action, who='RL'):
+        if who == 'RL':
+            clockwise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
+            idx = clockwise.index(self.direction)
 
-        if np.array_equal(action, [1, 0, 0]):
-            new_dir = clockwise[idx]
-        elif np.array_equal(action, [0, 1, 0]):
-            new_dir = clockwise[(idx + 1) % 4]
-        else:
-            new_dir = clockwise[(idx - 1) % 4]
+            if np.array_equal(action, [1, 0, 0]):
+                new_dir = clockwise[idx]
+            elif np.array_equal(action, [0, 1, 0]):
+                new_dir = clockwise[(idx + 1) % 4]
+            else:
+                new_dir = clockwise[(idx - 1) % 4]
 
-        self.direction = new_dir
+            self.direction = new_dir
 
         x = self.head.x
         y = self.head.y
