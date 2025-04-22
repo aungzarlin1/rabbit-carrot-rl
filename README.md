@@ -7,5 +7,7 @@ Run the test.py for the final testing.
 ## Requirments
 
 pytorch
+
 numpy
+
 matplotlib
