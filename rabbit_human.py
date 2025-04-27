@@ -7,8 +7,8 @@ from collections import namedtuple
 pygame.init()
 
 
-game_speed = 10
-game_level = 1
+game_speed = 5
+game_level = 2
 if __name__ == '__main__':
     game = RabbitGameAI(game_speed=game_speed, game_level=game_level)
     while True:

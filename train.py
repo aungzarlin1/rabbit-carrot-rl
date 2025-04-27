@@ -24,10 +24,10 @@ class Agent:
 
     def get_state(self, game):
         head = game.rabbit[0]
-        point_l = Point(head.x - 20, head.y)
-        point_r = Point(head.x + 20, head.y)
-        point_u = Point(head.x, head.y - 20)
-        point_d = Point(head.x, head.y + 20)
+        point_l = Point(head.x - 30, head.y)
+        point_r = Point(head.x + 30, head.y)
+        point_u = Point(head.x, head.y - 30)
+        point_d = Point(head.x, head.y + 30)
         
         dir_l = game.direction == Direction.LEFT
         dir_r = game.direction == Direction.RIGHT
@@ -103,14 +103,17 @@ class Agent:
         return final_move
 
 
-def train():
+def train(game_level=2, wall_density=0):
     plot_scores = []
     plot_mean_scores = []
     total_score = 0
     record = 0
     agent = Agent()
+    if game_level == 2:
+        agent.model.load_state_dict(torch.load(f"results/model{game_level-1}_best_score.pth"))
+        wall_density = 10
     # game = SnakeGameAI()
-    game = RabbitGameAI()
+    game = RabbitGameAI(game_level=game_level, wall_density=wall_density)
     while True:
         # get old state
         state_old = agent.get_state(game)
@@ -134,11 +137,11 @@ def train():
             agent.n_games += 1
             agent.train_long_memory()
 
-            # if score > record:
-            #     record = score
-            #     agent.model.save()
+            if score > record:
+                record = score
+                agent.model.save(file_name=f'model{game_level}_best_score.pth')
             if agent.n_games % 50 == 0:
-                agent.model.save(file_name=f'model_{agent.n_games}_game.pth')
+                agent.model.save(file_name=f'model{game_level}_{agent.n_games}_game.pth')
 
             print('Game', agent.n_games, 'Score', score, 'Record:', record)
 
