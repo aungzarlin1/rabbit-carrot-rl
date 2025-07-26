@@ -18,7 +18,7 @@ class Agent:
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(11, 256, 3)
+        self.model = Linear_QNet(11 , 256, 3) # original 9
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
 
@@ -67,7 +67,7 @@ class Agent:
             ]
 
         return np.array(state, dtype=int)
-
+    
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done)) # popleft if MAX_MEMORY is reached
 
@@ -86,10 +86,9 @@ class Agent:
     def train_short_memory(self, state, action, reward, next_state, done):
         self.trainer.train_step(state, action, reward, next_state, done)
 
-    def get_action(self, state):
+    def get_action(self, state, game):
         # random moves: tradeoff exploration / exploitation
         self.epsilon = 80 - self.n_games
-        # self.epsilon = max(10, 80 -self.n_games)
         final_move = [0,0,0]
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(0, 2)
@@ -99,11 +98,20 @@ class Agent:
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
             final_move[move] = 1
-
         return final_move
+    
+def obstacles_loc(game_level=2):
+    loc = []
+    if game_level == 1:
+        return loc
+    else:
+        for _ in range(10):
+            x = random.randint(1, 29)
+            y = random.randint(1, 19)
+            loc.append((x,y))
+        return loc
 
-
-def train(game_level=2, wall_density=0):
+def train(game_level=2, game_speed=100):
     plot_scores = []
     plot_mean_scores = []
     total_score = 0
@@ -111,15 +119,14 @@ def train(game_level=2, wall_density=0):
     agent = Agent()
     if game_level == 2:
         agent.model.load_state_dict(torch.load(f"results/model{game_level-1}_best_score.pth"))
-        wall_density = 10
-    # game = SnakeGameAI()
-    game = RabbitGameAI(game_level=game_level, wall_density=wall_density)
+    obstacles = obstacles_loc(game_level)
+    game = RabbitGameAI(obstacles=obstacles,game_level=game_level, game_speed=game_speed)
     while True:
         # get old state
         state_old = agent.get_state(game)
 
         # get move
-        final_move = agent.get_action(state_old)
+        final_move = agent.get_action(state_old, game)
 
         # perform move and get new state
         reward, done, score = game.play_step(final_move)
@@ -153,6 +160,8 @@ def train(game_level=2, wall_density=0):
                 mean_score = np.mean(plot_scores[-20:])
             plot_mean_scores.append(mean_score)
             plot(plot_scores, plot_mean_scores)
+        if np.mean(plot_scores[-5:]) == 200:
+            break
 
 
 if __name__ == '__main__':

@@ -24,10 +24,10 @@ class Agent:
 
     def get_state(self, game):
         head = game.rabbit[0]
-        point_l = Point(head.x - 20, head.y)
-        point_r = Point(head.x + 20, head.y)
-        point_u = Point(head.x, head.y - 20)
-        point_d = Point(head.x, head.y + 20)
+        point_l = Point(head.x - 30, head.y)
+        point_r = Point(head.x + 30, head.y)
+        point_u = Point(head.x, head.y - 30)
+        point_d = Point(head.x, head.y + 30)
         
         dir_l = game.direction == Direction.LEFT
         dir_r = game.direction == Direction.RIGHT
@@ -99,13 +99,26 @@ class Agent:
             final_move[move] = 1
 
         return final_move
+    
+def obstacles_loc(game_level=2):
+    loc = []
+    if game_level == 1:
+        return loc
+    else:
+        for _ in range(10):
+            x = random.randint(1, 29)
+            y = random.randint(1, 19)
+            loc.append((x,y))
+        return loc
 
-def test():
+
+def test(game_level=1):
     agent = Agent()
-    # agent.model.load()  # Assuming you have the model save/load method defined
-    agent.model.load_state_dict(torch.load("results/model_50_game.pth"))
-# model.eval()
-    game = RabbitGameAI()
+    agent.model.load_state_dict(torch.load(f"results/model{game_level}_best_score.pth"))
+    obstacles = obstacles_loc(game_level)
+    game = RabbitGameAI(obstacles=obstacles,game_level=game_level)
+    # model.eval()
+    # game = RabbitGameAI()
     total_score = 0
     while True:
         state_old = agent.get_state(game)
