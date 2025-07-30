@@ -22,7 +22,7 @@ def obstacles_loc(game_level=2):
 
 
 game_speed = 5
-game_level = 1
+game_level = 2
 if __name__ == '__main__':
     obstacles = obstacles_loc(game_level)
     game = RabbitGameAI(obstacles=obstacles,game_speed=game_speed, game_level=game_level)

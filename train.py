@@ -111,7 +111,7 @@ def obstacles_loc(game_level=2):
             loc.append((x,y))
         return loc
 
-def train(game_level=2, game_speed=100):
+def train(game_level=1, game_speed=100):
     plot_scores = []
     plot_mean_scores = []
     total_score = 0
